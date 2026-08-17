@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Operações — Juanil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10131a;
+    --surface: #1a1f29;
+    --surface-2: #20262f;
+    --border: rgba(255,255,255,0.08);
+    --text: #edeff3;
+    --text-muted: #8d96a6;
+    --accent: #ffb020;
+    --accent-2: #35d0b8;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 12% -10%, rgba(255,176,32,0.07), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(53,208,184,0.05), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1080px; margin:0 auto; padding:56px 28px 80px;}
+
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:24px; flex-wrap:wrap;
+    border-bottom:1px solid var(--border);
+    padding-bottom:28px; margin-bottom:48px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 10px;
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700; letter-spacing:0.01em;
+    font-size:clamp(32px, 5vw, 46px);
+    margin:0; line-height:1.05;
+  }
+  .sub{color:var(--text-muted); font-size:15px; margin-top:10px; max-width:44ch;}
+
+  .clock{
+    font-family:'IBM Plex Mono', monospace;
+    text-align:right; color:var(--text-muted); font-size:13px;
+  }
+  .clock .time{
+    font-size:22px; color:var(--text); letter-spacing:0.04em;
+    display:block; margin-top:4px;
+  }
+
+  .category{margin-bottom:52px;}
+  .category-head{
+    display:flex; align-items:center; gap:14px; margin-bottom:22px;
+  }
+  .pin{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--accent); flex:none;
+    box-shadow:0 0 0 3px rgba(255,176,32,0.15);
+  }
+  .category-label{
+    font-family:'Oswald', sans-serif; text-transform:uppercase;
+    letter-spacing:0.12em; font-size:14px; font-weight:600;
+    color:var(--text); white-space:nowrap;
+  }
+  .rail{
+    flex:1; height:0; border-top:2px dashed rgba(255,255,255,0.14);
+  }
+  .count{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text-muted);
+  }
+
+  .grid{
+    display:grid; gap:18px;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px 20px 18px;
+    display:flex; flex-direction:column; gap:10px;
+    transition:border-color .15s ease, transform .15s ease, background .15s ease;
+  }
+  .card:hover, .card:focus-visible{
+    border-color:rgba(255,176,32,0.5);
+    background:var(--surface-2);
+    transform:translateY(-2px);
+    outline:none;
+  }
+  .card-title{
+    font-family:'Oswald', sans-serif; font-weight:600; font-size:19px;
+    letter-spacing:0.01em;
+  }
+  .card-desc{
+    color:var(--text-muted); font-size:13.5px; line-height:1.5; flex:1;
+  }
+  .card-foot{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:11.5px;
+  }
+  .repo-tag{color:var(--text-muted);}
+  .open{color:var(--accent); font-weight:500;}
+  .card:hover .open{color:var(--accent-2);}
+
+  footer{
+    margin-top:60px; padding-top:24px; border-top:1px solid var(--border);
+    color:var(--text-muted); font-size:12.5px; font-family:'IBM Plex Mono', monospace;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .card{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Juanil Transportes Rodoviários</p>
+      <h1>Central de Operações</h1>
+      <p class="sub">Acesso rápido aos sistemas da frota, sinistros e pessoas. Cada app roda de forma independente, com seu próprio Firebase.</p>
+    </div>
+    <div class="clock">
+      <span>Nilópolis, RJ</span>
+      <span class="time" id="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <section class="category">
+    <div class="category-head">
+      <span class="pin"></span>
+      <span class="category-label">Operação</span>
+      <span class="rail"></span>
+      <span class="count">04</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://juanilgeral.github.io/frota-field/" target="_blank" rel="noopener">
+        <div class="card-title">Frota Field</div>
+        <div class="card-desc">Gestão diária da frota — ponto, saída, chegada e status de rota por veículo.</div>
+        <div class="card-foot"><span class="repo-tag">frota-field</span><span class="open">abrir ↗</span></div>
+      </a>
+
+      <a class="card" href="https://juanilgeral.github.io/dashboard-frota/" target="_blank" rel="noopener">
+        <div class="card-title">Dashboard Frota</div>
+        <div class="card-desc">Painel de KPIs e status de rotas em tempo real da operação.</div>
+        <div class="card-foot"><span class="repo-tag">dashboard-frota</span><span class="open">abrir ↗</span></div>
+      </a>
+
+      <a class="card" href="https://juanilgeral.github.io/tele-rio/" target="_blank" rel="noopener">
+        <div class="card-title">Tele-Rio</div>
+        <div class="card-desc">Painel do cliente Tele-Rio com status de rotas em tempo real.</div>
+        <div class="card-foot"><span class="repo-tag">tele-rio</span><span class="open">abrir ↗</span></div>
+      </a>
+
+      <a class="card" href="https://juanilgeral.github.io/frota-jornada/" target="_blank" rel="noopener">
+        <div class="card-title">Frota-Jornada</div>
+        <div class="card-desc">Controle de jornada dos caminhões da frota.</div>
+        <div class="card-foot"><span class="repo-tag">frota-jornada</span><span class="open">abrir ↗</span></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="category-head">
+      <span class="pin"></span>
+      <span class="category-label">Sinistros &amp; Processos</span>
+      <span class="rail"></span>
+      <span class="count">02</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://juanilgeral.github.io/sinistros/" target="_blank" rel="noopener">
+        <div class="card-title">Sinistros</div>
+        <div class="card-desc">Cadastro, consulta e anexos de sinistros da frota, no padrão E-BRAT.</div>
+        <div class="card-foot"><span class="repo-tag">sinistros</span><span class="open">abrir ↗</span></div>
+      </a>
+
+      <a class="card" href="https://juanilgeral.github.io/CAAA/" target="_blank" rel="noopener">
+        <div class="card-title">CAAA</div>
+        <div class="card-desc">Procedimento Administrativo de Apuração de Sinistro.</div>
+        <div class="card-foot"><span class="repo-tag">CAAA</span><span class="open">abrir ↗</span></div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="category-head">
+      <span class="pin"></span>
+      <span class="category-label">Pessoas</span>
+      <span class="rail"></span>
+      <span class="count">01</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://juanilgeral.github.io/jornada/" target="_blank" rel="noopener">
+        <div class="card-title">Jornada</div>
+        <div class="card-desc">Controle de ponto dos funcionários.</div>
+        <div class="card-foot"><span class="repo-tag">jornada</span><span class="open">abrir ↗</span></div>
+      </a>
+
+    </div>
+  </section>
+
+  <footer>
+    <span>7 sistemas conectados</span>
+    <span>github.com/juanilgeral</span>
+  </footer>
+
+</div>
+
+<script>
+  function tick(){
+    var d = new Date();
+    var pad = function(n){ return String(n).padStart(2,'0'); };
+    document.getElementById('clock').textContent =
+      pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
