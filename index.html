@@ -113,6 +113,20 @@
     margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:11.5px;
   }
   .repo-tag{color:var(--text-muted);}
+  .badge-restrict{
+    display:inline-flex; align-items:center; gap:6px;
+    align-self:flex-start;
+    background:rgba(255,176,32,0.1);
+    border:1px solid rgba(255,176,32,0.35);
+    color:var(--accent);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px; letter-spacing:0.02em;
+    padding:4px 9px; border-radius:100px;
+  }
+  .badge-restrict::before{
+    content:"⚠";
+    font-size:10px;
+  }
   .open{color:var(--accent); font-weight:500;}
   .card:hover .open{color:var(--accent-2);}
 
@@ -152,7 +166,7 @@
       <p class="sub">Acesso rápido aos sistemas da frota, sinistros e pessoas. Cada app roda de forma independente, com seu próprio Firebase.</p>
     </div>
     <div class="clock">
-      <span>Nilópolis, RJ</span>
+      <span id="location">Localizando…</span>
       <span class="time" id="clock">--:--:--</span>
     </div>
   </header>
@@ -162,7 +176,7 @@
       <span class="pin"></span>
       <span class="category-label">Operação</span>
       <span class="rail"></span>
-      <span class="count">04</span>
+      <span class="count">05</span>
     </div>
     <div class="grid">
 
@@ -187,7 +201,14 @@
       <a class="card" href="https://juanilgeral.github.io/frota-jornada/" target="_blank" rel="noopener">
         <div class="card-title">Frota-Jornada</div>
         <div class="card-desc">Controle de jornada dos caminhões da frota.</div>
+        <span class="badge-restrict">Uso exclusivo do motorista em operação</span>
         <div class="card-foot"><span class="repo-tag">frota-jornada</span><span class="open">abrir ↗</span></div>
+      </a>
+
+      <a class="card" href="https://juanilgeral.github.io/frota-jornada/painel.html" target="_blank" rel="noopener">
+        <div class="card-title">Painel Frota-Jornada</div>
+        <div class="card-desc">Acompanhamento da jornada dos caminhões — visão de gestão/supervisão.</div>
+        <div class="card-foot"><span class="repo-tag">frota-jornada/painel</span><span class="open">abrir ↗</span></div>
       </a>
 
     </div>
@@ -236,7 +257,7 @@
   </section>
 
   <footer>
-    <span>7 sistemas conectados</span>
+    <span>8 sistemas conectados</span>
     <span>github.com/juanilgeral</span>
   </footer>
 
@@ -251,6 +272,20 @@
   }
   tick();
   setInterval(tick, 1000);
+
+  fetch('https://ipapi.co/json/')
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      var el = document.getElementById('location');
+      if (data && data.city) {
+        el.textContent = data.city + (data.region_code ? ', ' + data.region_code : '');
+      } else {
+        el.textContent = 'Local não identificado';
+      }
+    })
+    .catch(function(){
+      document.getElementById('location').textContent = 'Local não identificado';
+    });
 </script>
 
 </body>
