@@ -294,19 +294,49 @@
   tick();
   setInterval(tick, 1000);
 
-  fetch('https://ipapi.co/json/')
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      var el = document.getElementById('location');
-      if (data && data.city) {
-        el.textContent = data.city + (data.region_code ? ', ' + data.region_code : '');
-      } else {
-        el.textContent = 'Local não identificado';
-      }
-    })
-    .catch(function(){
-      document.getElementById('location').textContent = 'Local não identificado';
+  function buscarJsonComTimeout(url, timeoutMs){
+    var timeout = new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error('tempo esgotado')); }, timeoutMs);
     });
+    var requisicao = fetch(url, {
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    }).then(function(res){
+      if (!res.ok) throw new Error('serviço indisponível');
+      return res.json();
+    });
+    return Promise.race([requisicao, timeout]);
+  }
+
+  function formatarLocal(data){
+    if (!data || data.success === false || !data.city) return '';
+    var regiao = data.region_code || data.region || data.state || '';
+    return data.city + (regiao ? ', ' + regiao : '');
+  }
+
+  async function identificarLocal(){
+    var el = document.getElementById('location');
+    var provedores = [
+      'https://ipwho.is/',
+      'https://ipapi.co/json/',
+      'https://geolocation-db.com/json/'
+    ];
+
+    for (var i = 0; i < provedores.length; i++) {
+      try {
+        var local = formatarLocal(await buscarJsonComTimeout(provedores[i], 5000));
+        if (local) {
+          el.textContent = local;
+          return;
+        }
+      } catch (erro) {
+        // Tenta o próximo serviço sem interromper o carregamento da página.
+      }
+    }
+    el.textContent = 'Local não identificado';
+  }
+
+  identificarLocal();
 </script>
 
 </body>
