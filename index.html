@@ -176,7 +176,7 @@
       <span class="pin"></span>
       <span class="category-label">Operação</span>
       <span class="rail"></span>
-      <span class="count">05</span>
+      <span class="count">06</span>
     </div>
     <div class="grid">
 
@@ -209,6 +209,12 @@
         <div class="card-title">Painel Frota-Jornada</div>
         <div class="card-desc">Acompanhamento da jornada dos caminhões — visão de gestão/supervisão.</div>
         <div class="card-foot"><span class="repo-tag">frota-jornada/painel</span><span class="open">abrir ↗</span></div>
+      </a>
+
+      <a class="card" href="https://juanilgeral.github.io/relatorios/index.html" target="_blank" rel="noopener">
+        <div class="card-title">Relatórios Operacionais</div>
+        <div class="card-desc">Relatórios gerais da operação Juanil.</div>
+        <div class="card-foot"><span class="repo-tag">relatorios</span><span class="open">abrir ↗</span></div>
       </a>
 
     </div>
@@ -256,24 +262,6 @@
     </div>
   </section>
 
-  <section class="category">
-    <div class="category-head">
-      <span class="pin"></span>
-      <span class="category-label">Relatórios</span>
-      <span class="rail"></span>
-      <span class="count">01</span>
-    </div>
-    <div class="grid">
-
-      <a class="card" href="https://juanilgeral.github.io/relatorios/index.html" target="_blank" rel="noopener">
-        <div class="card-title">Relatórios</div>
-        <div class="card-desc">Relatórios gerais da operação Juanil.</div>
-        <div class="card-foot"><span class="repo-tag">relatorios</span><span class="open">abrir ↗</span></div>
-      </a>
-
-    </div>
-  </section>
-
   <footer>
     <span>9 sistemas conectados</span>
     <span>github.com/juanilgeral</span>
@@ -291,18 +279,36 @@
   tick();
   setInterval(tick, 1000);
 
-  fetch('https://ipapi.co/json/')
+  function setLocation(text){
+    document.getElementById('location').textContent = text;
+  }
+  function fetchWithTimeout(url, ms){
+    var controller = new AbortController();
+    var t = setTimeout(function(){ controller.abort(); }, ms);
+    return fetch(url, { signal: controller.signal }).finally(function(){ clearTimeout(t); });
+  }
+  fetchWithTimeout('https://ipwho.is/', 4000)
     .then(function(res){ return res.json(); })
     .then(function(data){
-      var el = document.getElementById('location');
-      if (data && data.city) {
-        el.textContent = data.city + (data.region_code ? ', ' + data.region_code : '');
+      if (data && data.success !== false && data.city) {
+        setLocation(data.city + (data.region ? ', ' + data.region : ''));
       } else {
-        el.textContent = 'Local não identificado';
+        throw new Error('sem cidade');
       }
     })
     .catch(function(){
-      document.getElementById('location').textContent = 'Local não identificado';
+      fetchWithTimeout('https://ipapi.co/json/', 4000)
+        .then(function(res){ return res.json(); })
+        .then(function(data){
+          if (data && data.city) {
+            setLocation(data.city + (data.region_code ? ', ' + data.region_code : ''));
+          } else {
+            setLocation('Local não identificado');
+          }
+        })
+        .catch(function(){
+          setLocation('Local não identificado');
+        });
     });
 </script>
 
