@@ -277,10 +277,13 @@
 
 <script>
   function tick(){
-    var d = new Date();
-    var pad = function(n){ return String(n).padStart(2,'0'); };
-    document.getElementById('clock').textContent =
-      pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    var parts = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    }).formatToParts(new Date());
+    var get = function(t){ return (parts.find(function(p){ return p.type===t; })||{}).value || '00'; };
+    document.getElementById('clock').textContent = get('hour')+':'+get('minute')+':'+get('second');
   }
   tick();
   setInterval(tick, 1000);
@@ -288,34 +291,32 @@
   function setLocation(text){
     document.getElementById('location').textContent = text;
   }
-  function fetchWithTimeout(url, ms){
-    var controller = new AbortController();
-    var t = setTimeout(function(){ controller.abort(); }, ms);
-    return fetch(url, { signal: controller.signal }).finally(function(){ clearTimeout(t); });
-  }
-  fetchWithTimeout('https://ipwho.is/', 4000)
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      if (data && data.success !== false && data.city) {
-        setLocation(data.city + (data.region ? ', ' + data.region : ''));
-      } else {
-        throw new Error('sem cidade');
-      }
-    })
-    .catch(function(){
-      fetchWithTimeout('https://ipapi.co/json/', 4000)
-        .then(function(res){ return res.json(); })
-        .then(function(data){
-          if (data && data.city) {
-            setLocation(data.city + (data.region_code ? ', ' + data.region_code : ''));
-          } else {
-            setLocation('Local não identificado');
-          }
-        })
-        .catch(function(){
-          setLocation('Local não identificado');
-        });
+
+  function cidadeDeGeo(lat, lon){
+    var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=pt';
+    return fetch(url).then(function(r){ return r.json(); }).then(function(d){
+      var cidade = d.city || d.locality || d.principalSubdivision || '';
+      var uf = d.principalSubdivisionCode || d.principalSubdivision || '';
+      if (uf && uf.indexOf('-')>=0) uf = uf.split('-').pop();
+      if (!cidade) throw new Error('sem cidade');
+      setLocation(uf ? cidade + ', ' + uf : cidade);
     });
+  }
+
+  function localizar(){
+    setLocation('Localizando…');
+    if (!navigator.geolocation) {
+      setLocation('GPS indisponível');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      cidadeDeGeo(pos.coords.latitude, pos.coords.longitude)
+        .catch(function(){ setLocation('Local não identificado'); });
+    }, function(){
+      setLocation('Permita a localização no navegador');
+    }, { enableHighAccuracy:true, timeout:8000, maximumAge:300000 });
+  }
+  localizar();
 </script>
 
 </body>
